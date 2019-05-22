@@ -127,25 +127,13 @@ class Repository {
 
     GHTag tag(String tagName) {
         GHBranch branch = defaultBranch
-        tag(tagName, branch)
-    }
-
-    GHTag tag(String tagName, GHBranch branch) {
         tag(tagName, branch.SHA1)
-    }
-
-    GHTag tag(String tagName, GHCommit commit) {
-        tag(tagName, commit.getSHA1())
     }
 
     GHTag tag(String tagName, String ref) {
         repository.createRef("refs/tags/$tagName", ref)
         //there is no other way at the moment to load a GHTag
         listTags().find { it.name == tagName } as GHTag
-    }
-
-    GHPullRequest createPullRequest(String title, String head) {
-        createPullRequest(title, head, repository.defaultBranch, "")
     }
 
     GHPullRequest setupPullRequestWithFileChange(String title, String body, String branchName) {

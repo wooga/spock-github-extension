@@ -186,6 +186,7 @@ class GithubRepositoryBuilderSpec extends Specification {
         def pr1 = repo.setupPullRequestWithFileChange("Merge PR","","pr/merge")
 
         when:
+        sleep(200)
         repo.mergePullRequest(pr1, GHPullRequest.MergeMethod.MERGE)
 
         then:
@@ -199,6 +200,7 @@ class GithubRepositoryBuilderSpec extends Specification {
         def pr1 = repo.setupPullRequestWithFileChange("Merge PR","","pr/squash")
 
         when:
+        sleep(200)
         repo.mergePullRequest(pr1, GHPullRequest.MergeMethod.SQUASH)
 
         then:
@@ -212,6 +214,7 @@ class GithubRepositoryBuilderSpec extends Specification {
         def pr1 = repo.setupPullRequestWithFileChange("Merge PR","","pr/rebase")
 
         when:
+        sleep(200)
         repo.mergePullRequest(pr1, GHPullRequest.MergeMethod.REBASE)
 
         then:
