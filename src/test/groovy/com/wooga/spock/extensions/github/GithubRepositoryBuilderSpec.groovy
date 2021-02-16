@@ -24,8 +24,10 @@ import org.kohsuke.github.GHException
 import org.kohsuke.github.GHFileNotFoundException
 import org.kohsuke.github.GHPullRequest
 import org.kohsuke.github.HttpException
+import spock.lang.Retry
 import spock.lang.Specification
 
+@Retry(delay = 2000, count = 2, mode = Retry.Mode.SETUP_FEATURE_CLEANUP)
 class GithubRepositoryBuilderSpec extends Specification {
 
     @Rule
@@ -84,7 +86,7 @@ class GithubRepositoryBuilderSpec extends Specification {
         !repo.isPrivate()
 
         and: "allows pull-request merge commits"
-        def pr1 = repo.setupPullRequestWithFileChange("Merge PR","","pr/merge")
+        def pr1 = repo.setupPullRequestWithFileChange("Merge PR", "", "pr/merge")
 
         when:
         sleep(200)
@@ -94,7 +96,7 @@ class GithubRepositoryBuilderSpec extends Specification {
         noExceptionThrown()
 
         and: "allows pull-request squash commits"
-        def pr2 = repo.setupPullRequestWithFileChange("Merge PR","","pr/squash")
+        def pr2 = repo.setupPullRequestWithFileChange("Merge PR", "", "pr/squash")
 
         when:
         sleep(200)
@@ -104,7 +106,7 @@ class GithubRepositoryBuilderSpec extends Specification {
         noExceptionThrown()
 
         and: "allows pull-request rebase commits"
-        def pr3 = repo.setupPullRequestWithFileChange("Merge PR","","pr/rebase")
+        def pr3 = repo.setupPullRequestWithFileChange("Merge PR", "", "pr/rebase")
 
         when:
         sleep(200)
@@ -183,7 +185,7 @@ class GithubRepositoryBuilderSpec extends Specification {
     @GithubRepository(allowMergeCommit = false)
     def "can disable merge commits"(Repository repo) {
         given:
-        def pr1 = repo.setupPullRequestWithFileChange("Merge PR","","pr/merge")
+        def pr1 = repo.setupPullRequestWithFileChange("Merge PR", "", "pr/merge")
 
         when:
         sleep(200)
@@ -197,7 +199,7 @@ class GithubRepositoryBuilderSpec extends Specification {
     @GithubRepository(allowSquashMerge = false)
     def "can disable squash commits"(Repository repo) {
         given:
-        def pr1 = repo.setupPullRequestWithFileChange("Merge PR","","pr/squash")
+        def pr1 = repo.setupPullRequestWithFileChange("Merge PR", "", "pr/squash")
 
         when:
         sleep(200)
@@ -211,7 +213,7 @@ class GithubRepositoryBuilderSpec extends Specification {
     @GithubRepository(allowRebaseMerge = false)
     def "can disable rebase commits"(Repository repo) {
         given:
-        def pr1 = repo.setupPullRequestWithFileChange("Merge PR","","pr/rebase")
+        def pr1 = repo.setupPullRequestWithFileChange("Merge PR", "", "pr/rebase")
 
         when:
         sleep(200)

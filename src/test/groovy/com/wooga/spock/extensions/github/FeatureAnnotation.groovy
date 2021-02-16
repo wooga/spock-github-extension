@@ -20,10 +20,12 @@ package com.wooga.spock.extensions.github
 
 import org.junit.Rule
 import org.junit.contrib.java.lang.system.EnvironmentVariables
+import spock.lang.Retry
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
+@Retry(delay = 2000, count = 2, mode = Retry.Mode.SETUP_FEATURE_CLEANUP)
 class FeatureAnnotation extends Specification {
 
     @Rule

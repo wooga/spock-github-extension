@@ -52,8 +52,8 @@ class Repository {
     void captureResetRefs() {
         try {
             resetRefs = repository.refs
-        } catch(HttpException e) {
-            if(!e.message.contains("Git Repository is empty.")) {
+        } catch (HttpException e) {
+            if (!e.message.contains("Git Repository is empty.")) {
                 throw e
             }
             resetRefs = []
@@ -112,7 +112,8 @@ class Repository {
         commitBuilder.message(message)
         commitBuilder.tree(commit.tree.getSha())
         commitBuilder.parent(commit.getSHA1())
-        commitBuilder.author(repository.owner.name, repository.owner.email, new Date())
+        def email = repository.owner.email ?: "test@gmail.com"
+        commitBuilder.author(repository.owner.name, email, new Date())
         GHCommit newCommit = commitBuilder.create()
 
         GHRef branchRef = getBranchRef(branchName)
