@@ -23,10 +23,12 @@ import org.kohsuke.github.GHBranch
 import org.kohsuke.github.GHCommit
 import org.kohsuke.github.GHRef
 import org.kohsuke.github.GHRepository
+import spock.lang.Retry
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
+@Retry(delay = 2000, count = 2, mode = Retry.Mode.SETUP_FEATURE_CLEANUP)
 class RepositorySpec extends Specification {
 
     @Rule

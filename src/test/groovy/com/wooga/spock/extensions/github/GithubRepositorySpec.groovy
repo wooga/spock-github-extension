@@ -17,8 +17,10 @@
 
 package com.wooga.spock.extensions.github
 
+import spock.lang.Retry
 import spock.lang.Shared
 
+@Retry(delay = 2000, count = 2, mode = Retry.Mode.SETUP_FEATURE_CLEANUP)
 class GithubRepositorySpec extends BaseGithubRepositorySpec {
 
     @GithubRepository(

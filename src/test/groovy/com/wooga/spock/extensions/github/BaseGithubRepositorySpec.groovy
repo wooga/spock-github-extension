@@ -19,8 +19,10 @@ package com.wooga.spock.extensions.github
 
 import org.kohsuke.github.GHIssueState
 import org.kohsuke.github.GHPullRequest
+import spock.lang.Retry
 import spock.lang.Specification
 
+@Retry(delay = 2000, count = 2, mode = Retry.Mode.SETUP_FEATURE_CLEANUP)
 abstract class BaseGithubRepositorySpec extends Specification {
 
     abstract Repository getTestRepository()
