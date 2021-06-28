@@ -61,4 +61,70 @@ class GithubSharedAutoResetRepositorySpec extends BaseGithubRepositorySpec {
         commits << [3, 3]
         message << ['initial', 'second run']
     }
+
+    def "resets commits on repository reset"() {
+        given: "a repository with captured refs"
+        def defaultBranch = testRepository.defaultBranch
+        def capturedCommit = testRepository.getCommit(defaultBranch)
+        testRepository.captureResetRefs()
+
+        and: "a new commit in the head of the main branch"
+        testRepository.commit("simple test commit")
+
+        when: "repository is reseted"
+        testRepository.resetRepository()
+
+        then: "head commit is the same as the captured state"
+        testRepository.getCommit(defaultBranch).SHA1 == capturedCommit.SHA1
+    }
+
+    def "delete created branches on repository reset"() {
+        given: "a repository with captured refs"
+        testRepository.captureResetRefs()
+
+        and: "a newly created branch"
+        def createdBranch = testRepository.createBranch("testbranch")
+
+        when: "repository is reseted"
+        testRepository.resetRepository()
+
+        then: "newly created branch does not exists anymore"
+        !testRepository.branches.containsKey(createdBranch.name)
+    }
+
+    def "rewind branches on repository reset"() {
+        given: "a repository with a secondary branch and captured refs"
+        def secondaryBranch = testRepository.createBranch("secondary")
+        def previousCommit = testRepository.getCommit(secondaryBranch.SHA1)
+        testRepository.captureResetRefs()
+
+
+        and: "a new commit in the head of a secondary branch"
+        testRepository.createCommit().
+                message("secondary commit").
+                tree(previousCommit.tree.sha).
+                parent(secondaryBranch.SHA1).create()
+
+        when: "repository is reseted"
+        testRepository.resetRepository()
+
+        then: "head commit is the same as the captured state"
+        testRepository.branches.containsKey(secondaryBranch.name)
+        testRepository.getCommit(secondaryBranch).SHA1 == previousCommit.SHA1
+
+    }
+
+    def "deletes created tags on repository reset"() {
+        given: "a repository with captured refs"
+        testRepository.captureResetRefs()
+
+        and: "a newly created tag"
+        def newTag = testRepository.tag("newTag")
+
+        when: "repository is reseted"
+        testRepository.resetRepository()
+
+        then: "newly created tag does not exists anymore"
+        !testRepository.findTag(newTag.name).isPresent()
+    }
 }

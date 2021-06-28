@@ -50,14 +50,7 @@ class Repository {
     }
 
     void captureResetRefs() {
-        try {
-            resetRefs = repository.refs
-        } catch (HttpException e) {
-            if (!e.message.contains("Git Repository is empty.")) {
-                throw e
-            }
-            resetRefs = []
-        }
+        resetRefs = tryGetRefs()
     }
 
     void resetRepository() {
@@ -133,8 +126,12 @@ class Repository {
 
     GHTag tag(String tagName, String ref) {
         repository.createRef("refs/tags/$tagName", ref)
+        findTag(tagName).orElse(null)
+    }
+
+    Optional<GHTag> findTag(String tagName) {
         //there is no other way at the moment to load a GHTag
-        listTags().find { it.name == tagName } as GHTag
+        Optional.ofNullable(listTags().find { it.name == tagName } as GHTag)
     }
 
     GHPullRequest setupPullRequestWithFileChange(String title, String body, String branchName) {
@@ -208,24 +205,40 @@ class Repository {
         resetRepositoryRefs(resetRefs)
     }
 
-    static void resetRepositoryRefs(GHRef[] refs) {
-        Map<String, GHRef> capturedRefs = refs.inject(new HashMap<String, GHRef>()) { memo, item ->
+    void resetRepositoryRefs(GHRef[] refsToReset) {
+        Map<String, GHRef> capturedRefs = refsToReset.inject(new HashMap<String, GHRef>()) { memo, item ->
             memo[item.ref] = item
             memo
         }
 
-        GHRef[] currentRefs = refs
-
-        currentRefs.each {
+        this.tryGetRefs().each {
+            if(it.ref.startsWith("refs/pull")) { //why the hell github puts pull requests as refs??
+                return
+            }
             GHRef oldState = capturedRefs[it.ref]
             if (oldState) {
                 it.updateTo(oldState.object.sha, true)
             } else {
-                try {
-                    it.delete()
-                } catch (ignored) {
-                }
+                tryToDelete(it)
             }
+        }
+    }
+
+    GHRef[] tryGetRefs() {
+        try {
+            return repository.refs
+        } catch (HttpException e) {
+            if (!e.message.contains("Git Repository is empty.")) {
+                throw e
+            }
+            return []
+        }
+    }
+
+    private static void tryToDelete(GHRef ref) {
+        try {
+            ref.delete()
+        } catch (ignored) {
         }
     }
 }
