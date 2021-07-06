@@ -17,24 +17,28 @@
 
 package com.wooga.spock.extensions.github.interceptor
 
-
+import com.wooga.spock.extensions.github.GithubRepository
 import groovy.transform.InheritConstructors
+import org.spockframework.runtime.extension.AbstractMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.FieldInfo
-import org.spockframework.runtime.model.SpecInfo
 
 @InheritConstructors
-class SharedGithubRepositoryInterceptor extends GithubRepositoryFieldInterceptor {
+class SharedGithubRepositoryInterceptor extends AbstractMethodInterceptor implements FieldInterceptor {
 
-    boolean getResetAfterTestCase() {
-        this.metadata.resetAfterTestCase()
+    GithubRepository metadata;
+    RepositoryFieldOperations ops;
+
+    SharedGithubRepositoryInterceptor(GithubRepository metadata, RepositoryFieldOperations ops) {
+        this.metadata = metadata
+        this.ops = ops
     }
 
     @Override
     void interceptSetupSpecMethod(IMethodInvocation invocation) {
-        setupRepository(invocation)
+        ops.setupRepository(invocation)
         invocation.proceed()
-        captureResetRef(invocation)
+        ops.captureResetRef(invocation)
     }
 
     @Override
@@ -42,7 +46,7 @@ class SharedGithubRepositoryInterceptor extends GithubRepositoryFieldInterceptor
         try {
             invocation.proceed()
         } finally {
-            destroyRepository(invocation)
+            ops.destroyRepository(invocation)
         }
     }
 
@@ -51,19 +55,17 @@ class SharedGithubRepositoryInterceptor extends GithubRepositoryFieldInterceptor
         try {
             invocation.proceed()
         } finally {
-            resetRepository(invocation)
+            ops.resetRepository(invocation)
         }
     }
 
     @Override
     void install(FieldInfo info) {
-        super.install(info)
-
         final spec = info.getParent().getTopSpec()
         spec.setupSpecInterceptors.add(this)
         spec.cleanupSpecInterceptors.add(this)
 
-        if (resetAfterTestCase) {
+        if (metadata.resetAfterTestCase()) {
             spec.cleanupInterceptors.add(this)
         }
     }

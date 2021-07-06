@@ -129,6 +129,10 @@ class Repository {
         findTag(tagName).orElse(null)
     }
 
+    void delete() {
+        repository.delete()
+    }
+
     Optional<GHTag> findTag(String tagName) {
         //there is no other way at the moment to load a GHTag
         Optional.ofNullable(listTags().find { it.name == tagName } as GHTag)
@@ -234,6 +238,8 @@ class Repository {
             return []
         }
     }
+
+
 
     private static void tryToDelete(GHRef ref) {
         try {

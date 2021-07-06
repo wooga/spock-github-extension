@@ -19,23 +19,24 @@ package com.wooga.spock.extensions.github.interceptor
 
 import com.wooga.spock.extensions.github.GithubRepository
 import com.wooga.spock.extensions.github.Repository
+import com.wooga.spock.extensions.github.RepositoryFactory
 import groovy.transform.InheritConstructors
+import org.spockframework.runtime.extension.AbstractMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.FeatureInfo
 
 import java.lang.reflect.Parameter
 
 @InheritConstructors
-class GithubRepositoryFeatureInterceptor extends GithubRepositoryManagingInterceptor<FeatureInfo> {
+class GithubRepositoryFeatureInterceptor extends AbstractMethodInterceptor {
 
-    GithubRepositoryFeatureInterceptor(GithubRepository metadata) {
-        super(metadata)
-    }
+    private RepositoryFactory factory
+    private GithubRepository metadata
+    Repository repo;
 
-    Repository repo
-
-    boolean getResetAfterTestCase() {
-        this.metadata.resetAfterTestCase()
+    GithubRepositoryFeatureInterceptor(GithubRepository metadata, RepositoryFactory factory) {
+        this.metadata = metadata
+        this.factory = factory
     }
 
     private static void injectRepository(IMethodInvocation invocation, Repository repo) {
@@ -78,8 +79,8 @@ class GithubRepositoryFeatureInterceptor extends GithubRepositoryManagingInterce
             invocation.proceed()
         }
         finally {
-            if (resetAfterTestCase) {
-                resetRepository(invocation)
+            if (metadata.resetAfterTestCase()) {
+                repo.resetRepository()
             }
         }
     }
@@ -87,8 +88,7 @@ class GithubRepositoryFeatureInterceptor extends GithubRepositoryManagingInterce
     @Override
     void interceptSetupMethod(IMethodInvocation invocation) throws Throwable {
         invocation.proceed()
-        setupRepository(invocation)
-
+        setupRepository(invocation.feature)
         invocation.spec.setupInterceptors.remove(this)
     }
 
@@ -96,42 +96,24 @@ class GithubRepositoryFeatureInterceptor extends GithubRepositoryManagingInterce
     @Override
     void interceptFeatureExecution(IMethodInvocation invocation) throws Throwable {
         invocation.spec.addSetupInterceptor(this)
-
         try {
             invocation.proceed()
         }
         finally {
-            destroyRepository(invocation)
+            repo.delete()
         }
     }
 
-    @Override
     void install(FeatureInfo info) {
-        super.install(info)
         info.addInterceptor(this)
         info.addIterationInterceptor(this)
         info.featureMethod.addInterceptor(this)
     }
 
-    @Override
-    Repository setupRepository(IMethodInvocation invocation) {
-        repo = super.setupRepository(invocation)
-        captureResetRef(invocation)
-        repo
-    }
-
-    @Override
-    void destroyRepository(IMethodInvocation invocation) {
-        repo.delete()
-    }
-
-    @Override
-    void resetRepository(IMethodInvocation invocation) {
-        repo.resetRepository()
-    }
-
-    @Override
-    void captureResetRef(IMethodInvocation invocation) {
+    Repository setupRepository(FeatureInfo info) {
+        def repoBaseName = RepositoryFactory.getRepositoryBaseName(info)
+        this.repo = factory.setupRepository(repoBaseName)
         repo.captureResetRefs()
+        return repo
     }
 }
