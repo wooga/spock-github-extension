@@ -17,17 +17,12 @@
 
 package com.wooga.spock.extensions.github
 
-import com.wooga.spock.extensions.github.GithubRepository
-import com.wooga.spock.extensions.github.GithubRepositoryExtension
-import com.wooga.spock.extensions.github.Repository
+
 import com.wooga.spock.extensions.github.api.RepositoryPostFix
 import groovy.transform.InheritConstructors
 import org.kohsuke.github.GHRepository
 import org.kohsuke.github.GitHub
 import org.kohsuke.github.GitHubBuilder
-import org.spockframework.runtime.extension.AbstractMethodInterceptor
-import org.spockframework.runtime.extension.IMethodInvocation
-import org.spockframework.runtime.model.FieldInfo
 import org.spockframework.runtime.model.NodeInfo
 
 @InheritConstructors
@@ -49,7 +44,7 @@ class RepositoryFactory {
 
     Repository setupRepository(String repositoryBaseName) {
         def repositoryName = createRepositoryName(repositoryBaseName)
-        maybeDelete(getRepositoryFullName(repositoryName))
+        deleteRepoIfExists(getRepositoryFullName(repositoryName))
 
         //create github repo
         def builder = getClient().createRepository(repositoryName)
@@ -76,12 +71,12 @@ class RepositoryFactory {
         new Repository(repository, getClient(), getRepositoryOwner(), getToken())
     }
 
-    protected void maybeDelete(String repoName) {
+    protected void deleteRepoIfExists(String repoName) {
         try {
             def repository = getClient().getRepository(repoName)
-            repository.delete()
+            repository?.delete()
         }
-        catch (Exception e) {
+        catch (FileNotFoundException e) {
         }
     }
 
@@ -112,14 +107,14 @@ class RepositoryFactory {
 
     protected String getRepositoryOwner() {
         if (!repositoryOwner) {
-            repositoryOwner = System.getenv(metadata.usernameEnv())
+            repositoryOwner = getClient().myself.login
         }
         repositoryOwner
     }
 
     protected String getToken() {
         if (!token) {
-            token = System.getenv(metadata.tokenEnv())
+            token = mustGetEnvVar(metadata.tokenEnv())
         }
         token
     }
@@ -133,6 +128,14 @@ class RepositoryFactory {
                     .build()
         }
         return client
+    }
+
+    private static String mustGetEnvVar(String envVar){
+        def value = System.getenv(envVar)
+        if (!value) {
+            throw new IllegalArgumentException("Couldn't find environment variable ${envVar}")
+        }
+        return value
     }
 
 
