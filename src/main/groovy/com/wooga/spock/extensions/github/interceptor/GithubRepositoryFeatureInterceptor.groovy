@@ -34,6 +34,11 @@ class GithubRepositoryFeatureInterceptor extends AbstractMethodInterceptor {
     private GithubRepository metadata
     Repository repo;
 
+    static GithubRepositoryFeatureInterceptor withMetadata(GithubRepository metadata) {
+        def repoFactory = new RepositoryFactory(metadata)
+        return new GithubRepositoryFeatureInterceptor(metadata, repoFactory)
+    }
+
     GithubRepositoryFeatureInterceptor(GithubRepository metadata, RepositoryFactory factory) {
         this.metadata = metadata
         this.factory = factory

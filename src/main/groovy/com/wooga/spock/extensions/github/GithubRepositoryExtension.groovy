@@ -20,7 +20,6 @@ package com.wooga.spock.extensions.github
 import com.wooga.spock.extensions.github.interceptor.FieldInterceptor
 import com.wooga.spock.extensions.github.interceptor.GithubRepositoryFeatureInterceptor
 import com.wooga.spock.extensions.github.interceptor.GithubRepositoryInterceptor
-import com.wooga.spock.extensions.github.interceptor.RepositoryFieldOperations
 import com.wooga.spock.extensions.github.interceptor.SharedGithubRepositoryInterceptor
 import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
 import org.spockframework.runtime.model.FeatureInfo
@@ -31,18 +30,15 @@ class GithubRepositoryExtension extends AbstractAnnotationDrivenExtension<Github
 
     @Override
     void visitFeatureAnnotation(GithubRepository annotation, FeatureInfo feature) {
-        def repoFactory = new RepositoryFactory(annotation)
-        def interceptor = new GithubRepositoryFeatureInterceptor(annotation, repoFactory)
+        def interceptor = GithubRepositoryFeatureInterceptor.withMetadata(annotation)
         interceptor.install(feature)
     }
 
     @Override
     void visitFieldAnnotation(GithubRepository annotation, FieldInfo field) {
-        def repoFactory = new RepositoryFactory(annotation)
-        def repoOps = new RepositoryFieldOperations(field, repoFactory)
         FieldInterceptor interceptor = field.isShared()?
-                new SharedGithubRepositoryInterceptor(annotation, repoOps) :
-                new GithubRepositoryInterceptor(repoOps)
+                SharedGithubRepositoryInterceptor.withMetadata(annotation, field) :
+                GithubRepositoryInterceptor.withMetadata(annotation, field)
 
         interceptor.install(field)
     }

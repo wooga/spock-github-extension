@@ -18,6 +18,7 @@
 package com.wooga.spock.extensions.github.interceptor
 
 import com.wooga.spock.extensions.github.GithubRepository
+import com.wooga.spock.extensions.github.RepositoryFactory
 import groovy.transform.InheritConstructors
 import org.spockframework.runtime.extension.AbstractMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
@@ -28,6 +29,12 @@ class SharedGithubRepositoryInterceptor extends AbstractMethodInterceptor implem
 
     GithubRepository metadata;
     RepositoryFieldOperations ops;
+
+    static SharedGithubRepositoryInterceptor withMetadata(GithubRepository metadata, FieldInfo field) {
+        def repoFactory = new RepositoryFactory(metadata)
+        def repoOps = new RepositoryFieldOperations(field, repoFactory)
+       return new SharedGithubRepositoryInterceptor(metadata, repoOps)
+    }
 
     SharedGithubRepositoryInterceptor(GithubRepository metadata, RepositoryFieldOperations ops) {
         this.metadata = metadata
