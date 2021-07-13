@@ -32,6 +32,7 @@ class Repository {
 
     private interface GHRepositoryDelegateExcludes {
         String getDefaultBranch()
+        void delete()
     }
 
     @Delegate(excludeTypes = [GHRepositoryDelegateExcludes.class])
@@ -61,9 +62,9 @@ class Repository {
 
     boolean exists() {
         try {
-            client.getRepository(fullName)
+            client.getRepositoryById(repository.id)
             return true
-        } catch (ignored) {
+        } catch (FileNotFoundException) {
             return false
         }
     }
@@ -127,6 +128,23 @@ class Repository {
     GHTag tag(String tagName, String ref) {
         repository.createRef("refs/tags/$tagName", ref)
         findTag(tagName).orElse(null)
+    }
+
+    void delete(int retries=3) {
+        try {
+            if(this.exists()) {
+                repository.delete()
+            }
+        } catch (FileNotFoundException _) {
+        } catch (Exception e) {
+            if(retries > 0) {
+                sleep(500)
+                delete(retries-1)
+            } else {
+                throw e
+            }
+        }
+
     }
 
     Optional<GHTag> findTag(String tagName) {
@@ -234,6 +252,8 @@ class Repository {
             return []
         }
     }
+
+
 
     private static void tryToDelete(GHRef ref) {
         try {

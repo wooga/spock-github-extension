@@ -51,4 +51,5 @@ class GithubRepositorySpec extends BaseGithubRepositorySpec {
         expect:
         testRepository != null
     }
+
 }

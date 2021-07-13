@@ -17,18 +17,31 @@
 
 package com.wooga.spock.extensions.github.interceptor
 
-
+import com.wooga.spock.extensions.github.GithubRepository
+import com.wooga.spock.extensions.github.RepositoryFactory
 import groovy.transform.InheritConstructors
+import org.spockframework.runtime.extension.AbstractMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.FieldInfo
-import org.spockframework.runtime.model.SpecInfo
 
 @InheritConstructors
-class GithubRepositoryInterceptor extends GithubRepositoryFieldInterceptor {
+class GithubRepositoryInterceptor extends AbstractMethodInterceptor implements FieldInterceptor {
+
+    private RepositoryFieldOperations ops;
+
+    static GithubRepositoryInterceptor withMetadata(GithubRepository metadata, FieldInfo field) {
+        def repoFactory = new RepositoryFactory(metadata)
+        def repoOps = new RepositoryFieldOperations(field, repoFactory)
+        return new GithubRepositoryInterceptor(repoOps)
+    }
+
+    GithubRepositoryInterceptor(RepositoryFieldOperations ops) {
+        this.ops = ops
+    }
 
     @Override
     void interceptSetupMethod(IMethodInvocation invocation) {
-        setupRepository(invocation)
+        ops.setupRepository(invocation)
         invocation.proceed()
     }
 
@@ -37,14 +50,12 @@ class GithubRepositoryInterceptor extends GithubRepositoryFieldInterceptor {
         try {
             invocation.proceed()
         } finally {
-            destroyRepository(invocation)
+            ops.destroyRepository(invocation)
         }
     }
 
     @Override
     void install(FieldInfo info) {
-        super.install(info)
-
         final spec = info.parent.getTopSpec()
         spec.setupInterceptors.add(this)
         spec.cleanupInterceptors.add(this)
