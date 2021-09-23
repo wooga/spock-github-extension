@@ -20,11 +20,10 @@ plugins {
     id 'groovy'
     id 'maven-publish'
     id 'signing'
-    id 'nebula.release' version '15.2.0'
+    id 'nebula.release' version '15.3.1'
     id 'jacoco'
-    id 'com.github.kt3k.coveralls' version '2.8.2'
-    id 'io.codearte.nexus-staging' version '0.22.0'
-    id "de.marcphilipp.nexus-publish" version "0.4.0"
+    id 'com.github.kt3k.coveralls' version '2.12.0'
+    id "io.github.gradle-nexus.publish-plugin" version "1.1.0"
 }
 
 group "com.wooga.spock.extensions"
@@ -37,7 +36,7 @@ if (cliTasks.contains("rc")) {
 
 dependencies {
     implementation 'org.codehaus.groovy:groovy-all:2.4.15'
-    api 'org.kohsuke:github-api:1.131'
+    api 'org.kohsuke:github-api:[1.95,2)'
     implementation('org.spockframework:spock-core:1.2-groovy-2.4')
 
     testImplementation 'net.bytebuddy:byte-buddy:[1.9,2)'
@@ -48,15 +47,10 @@ repositories {
     mavenCentral()
 }
 
-task sourcesJar(type: Jar) {
-    archiveClassifier.set('sources')
-    from sourceSets.main.allSource
-}
-
-javadoc.failOnError = false
-task javadocJar(type: Jar) {
-    archiveClassifier.set('javadoc')
-    from javadoc
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    withJavadocJar()
+    withSourcesJar()
 }
 
 jacocoTestReport {
@@ -66,22 +60,10 @@ jacocoTestReport {
     }
 }
 
-artifacts {
-    archives sourcesJar
-    archives javadocJar
-}
-
 publishing {
     publications {
         main(MavenPublication) {
-            artifactId = project.name
             from(components["java"])
-            artifact sourcesJar {
-                classifier "sources"
-            }
-            artifact javadocJar {
-                classifier "javadoc"
-            }
             pom {
                 name = 'Spock GitHub extension'
                 description = 'A extension for Spock to create Github repositories during test.'
@@ -117,14 +99,11 @@ publishing {
 
 nexusPublishing {
     repositories {
-        sonatype()
+        sonatype {
+            username = project.hasProperty('ossrhUsername') ? project.property('ossrhUsername') : System.getenv('OSSRH_USERNAME')
+            password = project.hasProperty('ossrhPassword') ? project.property('ossrhPassword') : System.getenv('OSSRH_PASSWORD')
+        }
     }
-}
-
-nexusStaging {
-    username = project.hasProperty('ossrhUsername') ? project.property('ossrhUsername') : System.getenv('OSSRH_USERNAME')
-    password = project.hasProperty('ossrhPassword') ? project.property('ossrhPassword') : System.getenv('OSSRH_PASSWORD')
-    packageGroup = "com.wooga"
 }
 
 signing {
@@ -136,7 +115,11 @@ signing {
 }
 
 postRelease.dependsOn(tasks.publish)
-tasks."final".dependsOn(tasks.closeAndReleaseRepository)
-tasks."candidate".dependsOn(tasks.closeAndReleaseRepository)
-tasks.closeAndReleaseRepository.mustRunAfter(tasks.postRelease)
-tasks.publish.mustRunAfter(tasks.release)
+
+afterEvaluate {
+    tasks."final".dependsOn(tasks.publishToSonatype, tasks.closeAndReleaseSonatypeStagingRepository)
+    tasks."candidate".dependsOn(tasks.publishToSonatype, tasks.closeAndReleaseSonatypeStagingRepository)
+    tasks.publishToSonatype.mustRunAfter(tasks.postRelease)
+    tasks.closeSonatypeStagingRepository.mustRunAfter(tasks.publishToSonatype)
+    tasks.publish.mustRunAfter(tasks.release)
+}
