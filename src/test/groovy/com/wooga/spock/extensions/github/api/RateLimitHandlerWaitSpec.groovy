@@ -55,8 +55,8 @@ class RateLimitHandlerWaitSpec extends Specification {
         rateLimitResetMilis << [5000, 15000]
         message = rateLimitResetMilis < 10000 ? "for minimum wait time of 10 sec" : "until rate limit resets"
 
-        minTimeout = (Math.max(10000, rateLimitResetMilis) - 1000).longValue()
-        maxTimeout = (Math.max(10000, rateLimitResetMilis) + 1000).longValue()
+        minTimeout = (Math.max(10000, rateLimitResetMilis) - 2000).longValue()
+        maxTimeout = (Math.max(10000, rateLimitResetMilis) + 2000).longValue()
         waitTimeRange = (minTimeout..maxTimeout)
     }
 
