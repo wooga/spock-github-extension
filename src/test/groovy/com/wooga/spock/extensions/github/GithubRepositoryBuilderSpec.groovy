@@ -73,7 +73,7 @@ class GithubRepositoryBuilderSpec extends Specification {
         repo.createIssue("Test Issue").create()
 
         then:
-        e = thrown(GHFileNotFoundException)
+        e = thrown(HttpException)
         e.message.contains("Issues are disabled for this repo")
 
         and: "has no wiki"
