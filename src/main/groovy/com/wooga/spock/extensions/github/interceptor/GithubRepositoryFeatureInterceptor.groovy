@@ -60,33 +60,6 @@ class GithubRepositoryFeatureInterceptor extends AbstractMethodInterceptor {
         }
     }
 
-    //Spock 2 does away with the unpredictable argument array size, keeping it still for now for spock 1 compatibility
-//    private static void injectRepository(IMethodInvocation invocation, Repository repo) {
-//        Map<Parameter, Integer> parameters = [:]
-//        invocation.method.reflection.parameters.eachWithIndex { parameter, i ->
-//            parameters << [(parameter): i]
-//        }
-//        parameters = parameters.findAll { Repository.equals it.key.type}
-//
-//        // enlarge arguments array if necessary
-//        def lastMyInjectableParameterIndex = parameters*.value.max()
-//        lastMyInjectableParameterIndex = lastMyInjectableParameterIndex == null ?
-//                0 :
-//                lastMyInjectableParameterIndex + 1
-//
-//        if (invocation.arguments.length < lastMyInjectableParameterIndex) {
-//            def newArguments = new Object[lastMyInjectableParameterIndex]
-//            System.arraycopy invocation.arguments, 0, newArguments, 0, invocation.arguments.length
-//            invocation.arguments = newArguments
-//        }
-//
-//        parameters.each { parameter, i ->
-//            if(!(invocation.arguments[i]) || invocation.arguments[i] == MethodInfo.MISSING_ARGUMENT) {
-//                invocation.arguments[i] = repo
-//            }
-//        }
-//    }
-
     //execute feature
     @Override
     void interceptFeatureMethod(IMethodInvocation invocation) throws Throwable {
