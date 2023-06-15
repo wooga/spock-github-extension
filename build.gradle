@@ -37,12 +37,17 @@ if (cliTasks.contains("rc")) {
 }
 
 dependencies {
-    implementation 'org.codehaus.groovy:groovy-all:2.5.14'
+    implementation 'org.codehaus.groovy:groovy-all:3.0.13'
     api 'org.kohsuke:github-api:[1.95,2)'
-    implementation('org.spockframework:spock-core:1.3-groovy-2.5')
+    implementation 'org.spockframework:spock-core:2.3-groovy-3.0'
 
     testImplementation 'net.bytebuddy:byte-buddy:[1.9,2)'
     testImplementation 'com.github.stefanbirkner:system-rules:[1.18,2)'
+    testImplementation 'org.spockframework:spock-junit4:2.3-groovy-3.0'
+}
+
+test {
+    useJUnitPlatform()
 }
 
 repositories {
