@@ -43,7 +43,7 @@ dependencies {
 
     testImplementation 'net.bytebuddy:byte-buddy:[1.9,2)'
     testImplementation 'com.github.stefanbirkner:system-rules:[1.18,2)'
-    testImplementation 'org.spockframework:spock-junit4:2.3-groovy-3.0'
+    testImplementation 'org.spockframework:spock-junit4:2.3-groovy-4.0'
 }
 
 test {
